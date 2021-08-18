@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: jenkinstest
+  name: jenkinstest
+  namespace: default
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: jenkinstest
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: jenkinstest
+    spec:
+      imagePullSecrets:
+        - name: sumeyradockerhub
+      containers:
+      - image: sueda123/k8stest:jenkintest
+        imagePullPolicy: Always
+        ports:
+          - containerPort: 8080
+            protocol : TCP
+        name: jenkinstest
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jenkinstest
+  namespace: default
+spec:
+  selector:
+    app: jenkinstest
+  ports:
+  - port: 8080
+    protocol: TCP
+    targetPort: 8080
+  sessionAffinity: None
